@@ -1,4 +1,4 @@
-export pcap_lookupdev, pcap_findalldevs
+export pcap_lookupdev
 
 # ----------
 # lookup default device
