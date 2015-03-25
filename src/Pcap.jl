@@ -1,6 +1,6 @@
 module Pcap
 
-include("file.jl")
+include("offline.jl")
 include("online.jl")
 
-end # module
+end # module Pcap

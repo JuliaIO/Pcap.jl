@@ -1,29 +1,33 @@
 export pcap_lookupdev, pcap_findalldevs
 
-immutable SockAddr
-    sa_family::Uint16
-    sa_data1::Uint8
-    sa_data2::Uint8
-    sa_data3::Uint8
-    sa_data4::Uint8
-    sa_data5::Uint8
-    sa_data6::Uint8
-    sa_data7::Uint8
-    sa_data8::Uint8
-    sa_data9::Uint8
-    sa_data10::Uint8
-    sa_data11::Uint8
-    sa_data12::Uint8
-    sa_data13::Uint8
-    sa_data14::Uint8
-end # immutable SockAddr
+type SockAddr
+    sa_family::Cushort
+    sa_data1::Cuchar
+    sa_data2::Cuchar
+    sa_data3::Cuchar
+    sa_data4::Cuchar
+    sa_data5::Cuchar
+    sa_data6::Cuchar
+    sa_data7::Cuchar
+    sa_data8::Cuchar
+    sa_data9::Cuchar
+    sa_data10::Cuchar
+    sa_data11::Cuchar
+    sa_data12::Cuchar
+    sa_data13::Cuchar
+    sa_data14::Cuchar
 
-immutable PcapAddr
-    next::Ptr{PcapAddr}
-    addr::Ptr{SockAddr}
-    netmask::Ptr{SockAddr}
-    broadaddr::Ptr{SockAddr}
-    dstaddr::Ptr{SockAddr}
+    function SockAddr()
+        new(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+    end # constructor
+end # type SockAddr
+
+type PcapAddr
+    next::Ptr{Void}
+    addr::Ptr{Void}
+    netmask::Ptr{Void}
+    broadaddr::Ptr{Void}
+    dstaddr::Ptr{Void}
 
     function PcapAddr()
         next      = C_NULL
@@ -34,14 +38,14 @@ immutable PcapAddr
         new(next, addr, netmask,
             broadaddr, dstaddr)
     end # constructor
-end # immutable PcapAddr
+end # type PcapAddr
 
-immutable PcapIf
-    next::Ptr{PcapIf}
+type PcapIf
+    next::Ptr{Void} # PcapIf
     name::Ptr{Uint8}
     description::Ptr{Uint8}
-    addresses::Ptr{PcapAddr}
-    flags::Int32
+    addresses::Ptr{Void} # PcapAddr
+    flags::Cint
 
     function PcapIf()
         next        = C_NULL
@@ -53,15 +57,17 @@ immutable PcapIf
         new(next, name, description,
             addresses, flags)
     end # constructor
-end # immutable PcapIf
+end # type PcapIf
 
-#int pcap_findalldevs(pcap_if_t **alldevsp, char *errbuf);
-#void pcap_freealldevs(pcap_if_t *alldevs);
-
+# ----------
+# lookup all devices
+# ----------
 function pcap_findalldevs()
-    alldevsp = PcapIf()
-    errbuff  = Ptr{Uint8}
-    status = ccall((:pcap_findalldevs, "libpcap"), Int32, (Ptr{Ptr{PcapIf}}, Ptr{UInt8}), &alldevsp, errbuff)
+    # TODO: somethings not right
+    alldevs = PcapIf()
+    errbuff::Ptr{Uint8} = C_NULL
+    status = ccall((:pcap_findalldevs, "libpcap"), Cint, (Ptr{PcapIf}, Ptr{UInt8}), &alldevs, errbuff)
+    alldevs
 end # function pcap_findalldevs
 
 # ----------
