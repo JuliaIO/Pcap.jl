@@ -9,7 +9,9 @@ using Base.Test
 
 cap   = PcapOffline("capture.pcap")
 rec   = pcap_get_record(cap)
-ethhdr = decode_eth_hdr(rec.payload)
+ethhdr = decode_eth(rec.payload)
 println(ethhdr)
-iphdr  = decode_ip_hdr(rec.payload[15:end])
+iphdr  = decode_ip(rec.payload[15:end])
 println(iphdr)
+tcphdr = decode_tcp(rec.payload[35:end])
+println(tcphdr)
