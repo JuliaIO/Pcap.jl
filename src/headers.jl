@@ -1,6 +1,7 @@
 export EthHdr, IpFlags, IpHdr,
-       TcpFlags, TcpHdr, decode_eth,
-       decode_ip, decode_tcp
+       UdpHdr, TcpFlags, TcpHdr,
+       decode_eth, decode_ip, decode_tcp,
+       decode_udp
 
 type EthHdr
     dest_mac::String
@@ -57,9 +58,18 @@ type TcpHdr
     window::Uint16
     checksum::Uint16
     uptr::Uint16
-    payload::Array{Uint8}
+    data::Array{Uint8}
     TcpHdr() = new(0,0,0,0,0,TcpFlags(),0,0,0, Array(Uint8))
 end # type TcpHdr
+
+type UdpHdr
+    src_port::Uint16
+    dest_port::Uint16
+    length::Uint16
+    checksum::Uint16
+    data::Array{Uint8}
+    UdpHdr() = new(0,0,0,0,Array{Uint8})
+end # type UdpHdr
 
 function decode_eth(d::Array{Uint8})
     eh = EthHdr()
@@ -120,6 +130,16 @@ function decode_tcp(d::Array{Uint8})
     tcph.window    = ntoh(reinterpret(Uint16, d[15:16])[1])
     tcph.checksum  = ntoh(reinterpret(Uint16, d[17:18])[1])
     tcph.uptr      = ntoh(reinterpret(Uint16, d[19:20])[1])
-    tcph.payload   = d[tcph.offset * 4 + 1:end]
+    tcph.data      = d[tcph.offset * 4 + 1:end]
     tcph
 end # function decode_tcp
+
+function decode_udp(d::Array{Uint8})
+    udph = UdpHdr()
+    udph.src_port  = ntoh(reinterpret(Uint16, d[1:2])[1])
+    udph.dest_port = ntoh(reinterpret(Uint16, d[3:4])[1])
+    udph.length    = ntoh(reinterpret(Uint16, d[5:6])[1])
+    udph.checksum  = ntoh(reinterpret(Uint16, d[7:8])[1])
+    udph.data      = d[9:end]
+    udph
+end # function decode_udp
