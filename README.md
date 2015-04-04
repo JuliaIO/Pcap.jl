@@ -4,7 +4,7 @@ Pcap contains libpcap bindings for Julia as well as logic to parse and extract u
 
 ###Example
 ```julia
-    function display_eth_hdr(ethhdr::EthHdr)
+function display_eth_hdr(ethhdr::EthHdr)
     println("----- ETHERNET -----")
     println("Src Mac: $(ethhdr.src_mac)")
     println("Dst Mac: $(ethhdr.dest_mac)\n")
