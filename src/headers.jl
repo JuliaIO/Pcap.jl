@@ -1,7 +1,6 @@
 export EthHdr, IpFlags, IpHdr,
        UdpHdr, TcpFlags, TcpHdr,
-       decode_eth, decode_ip, decode_tcp,
-       decode_udp
+       DecPkt, decode_pkt
 
 type EthHdr
     dest_mac::String
@@ -71,7 +70,14 @@ type UdpHdr
     UdpHdr() = new(0,0,0,0,Array{Uint8})
 end # type UdpHdr
 
-function decode_eth(d::Array{Uint8})
+type DecPkt
+    datalink::EthHdr
+    network::IpHdr
+    protocol::Any
+    DecPkt() = new(EthHdr(), IpHdr(), nothing)
+end # type DecPkt
+
+function decode_eth_hdr(d::Array{Uint8})
     eh = EthHdr()
     eh.dest_mac = string(hex(d[1], 2), ":", hex(d[2], 2), ":", hex(d[3], 2), ":",
                          hex(d[4], 2), ":", hex(d[5], 2), ":", hex(d[6], 2))
@@ -79,12 +85,12 @@ function decode_eth(d::Array{Uint8})
                          hex(d[10], 2), ":", hex(d[11], 2), ":", hex(d[12], 2))
     eh.ptype    = ntoh(reinterpret(Uint16, d[13:14])[1])
     eh
-end # function decode_eth
+end # function decode_eth_hdr
 
-function decode_ip(d::Array{Uint8})
+function decode_ip_hdr(d::Array{Uint8})
     iph = IpHdr()
     iph.version     = (d[1] & 0xf0) >> 4
-    iph.length      = d[1] & 0x0f
+    iph.length      = (d[1] & 0x0f) * 4
     iph.services    = d[2]
     iph.totlen      = ntoh(reinterpret(Uint16, d[3:4])[1])
     iph.id          = ntoh(reinterpret(Uint16, d[5:6])[1])
@@ -103,9 +109,9 @@ function decode_ip(d::Array{Uint8})
     iph.src_ip      = string(Int(d[13]), ".", Int(d[14]), ".", Int(d[15]), ".", Int(d[16]))
     iph.dest_ip     = string(Int(d[17]), ".", Int(d[18]), ".", Int(d[19]), ".", Int(d[20]))
     iph
-end # function decode_ip
+end # function decode_ip_hdr
 
-function decode_tcp(d::Array{Uint8})
+function decode_tcp_hdr(d::Array{Uint8})
     tcph = TcpHdr()
     tcph.src_port  = ntoh(reinterpret(Uint16, d[1:2])[1])
     tcph.dest_port = ntoh(reinterpret(Uint16, d[3:4])[1])
@@ -132,9 +138,9 @@ function decode_tcp(d::Array{Uint8})
     tcph.uptr      = ntoh(reinterpret(Uint16, d[19:20])[1])
     tcph.data      = d[tcph.offset * 4 + 1:end]
     tcph
-end # function decode_tcp
+end # function decode_tcp_hdr
 
-function decode_udp(d::Array{Uint8})
+function decode_udp_hdr(d::Array{Uint8})
     udph = UdpHdr()
     udph.src_port  = ntoh(reinterpret(Uint16, d[1:2])[1])
     udph.dest_port = ntoh(reinterpret(Uint16, d[3:4])[1])
@@ -142,4 +148,21 @@ function decode_udp(d::Array{Uint8})
     udph.checksum  = ntoh(reinterpret(Uint16, d[7:8])[1])
     udph.data      = d[9:end]
     udph
-end # function decode_udp
+end # function decode_udp_hdr
+
+function decode_pkt(pkt::Array{Uint8})
+    decoded           = DecPkt()
+    decoded.datalink  = decode_eth_hdr(pkt)
+    iphdr             = decode_ip_hdr(pkt[15:end])
+    decoded.network   = iphdr
+
+    proto = nothing
+    if (iphdr.protocol == 6)
+        proto = decode_tcp_hdr(pkt[15 + iphdr.length:end])
+    elseif (iphdr.protocol == 17)
+        proto = decode_udp_hdr(pkt[15 + iphdr.length:end])
+    end
+
+    decoded.protocol = proto
+    decoded
+end # function decode_pkt
