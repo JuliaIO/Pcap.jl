@@ -2,7 +2,7 @@
 
 Pcap contains libpcap bindings for Julia as well as logic to parse and extract useful data from packet captures
 
-Example
+###Example
 ```julia
     function display_eth_hdr(ethhdr::EthHdr)
     println("----- ETHERNET -----")
@@ -36,7 +36,7 @@ if (layers.network.protocol == 6)
 end
 ```
 
-Output
+###Output
 ```
 [bearnado@fairyland test]$ julia demo.jl
 ----- ETHERNET -----
