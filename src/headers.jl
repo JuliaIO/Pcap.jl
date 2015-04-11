@@ -1,6 +1,6 @@
 export EthHdr, IpFlags, IpHdr,
        UdpHdr, TcpFlags, TcpHdr,
-       DecPkt, decode_pkt
+       IcmpHdr, DecPkt, decode_pkt
 
 type EthHdr
     dest_mac::String
@@ -67,8 +67,17 @@ type UdpHdr
     length::Uint16
     checksum::Uint16
     data::Array{Uint8}
-    UdpHdr() = new(0,0,0,0,Array{Uint8})
+    UdpHdr() = new(0,0,0,0,Array(Uint8))
 end # type UdpHdr
+
+type IcmpHdr
+    ptype::Uint8
+    code::Uint8
+    checksum::Uint16
+    identifier::Uint16
+    seqno::Uint16
+    IcmpHdr() = new(0,0,0,0,0)
+end # type IcmpHdr
 
 type DecPkt
     datalink::EthHdr
@@ -150,6 +159,16 @@ function decode_udp_hdr(d::Array{Uint8})
     udph
 end # function decode_udp_hdr
 
+function decode_icmp_hdr(d::Array{Uint8})
+    icmph = IcmpHdr()
+    icmph.ptype      = d[1]
+    icmph.code       = d[2]
+    icmph.checksum   = ntoh(reinterpret(Uint16, d[3:4])[1])
+    icmph.identifier = ntoh(reinterpret(Uint16, d[5:6])[1])
+    icmph.seqno      = ntoh(reinterpret(Uint16, d[7:8])[1])
+    icmph
+end # function decode_icmp_hdr
+
 function decode_pkt(pkt::Array{Uint8})
     decoded           = DecPkt()
     decoded.datalink  = decode_eth_hdr(pkt)
@@ -157,7 +176,9 @@ function decode_pkt(pkt::Array{Uint8})
     decoded.network   = iphdr
 
     proto = nothing
-    if (iphdr.protocol == 6)
+    if (iphdr.protocol == 1)
+        proto = decode_icmp_hdr(pkt[15 + iphdr.length:end])
+    elseif (iphdr.protocol == 6)
         proto = decode_tcp_hdr(pkt[15 + iphdr.length:end])
     elseif (iphdr.protocol == 17)
         proto = decode_udp_hdr(pkt[15 + iphdr.length:end])
