@@ -59,10 +59,15 @@ function pcap_get_record(s::PcapOffline)
     end
 
     rec = PcapRec()
-    rec.ts_sec   = read(s.file, Uint32)
-    rec.ts_usec  = read(s.file, Uint32)
-    rec.incl_len = read(s.file, Uint32)
-    rec.orig_len = read(s.file, Uint32)
-    rec.payload  = readbytes(s.file, rec.incl_len)
-    rec
+
+    if (!eof(s.file))
+        rec.ts_sec   = read(s.file, Uint32)
+        rec.ts_usec  = read(s.file, Uint32)
+        rec.incl_len = read(s.file, Uint32)
+        rec.orig_len = read(s.file, Uint32)
+        rec.payload  = readbytes(s.file, rec.incl_len)
+        return rec
+    end
+
+    nothing
 end # function pcap_fopen_offline
