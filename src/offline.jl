@@ -1,5 +1,5 @@
 export PcapFileHeader, PcapRec, PcapOffline,
-       pcap_get_record
+       pcap_get_record, pcap_seekstart
 
 type PcapFileHeader
     magic_number::Uint32
@@ -70,4 +70,8 @@ function pcap_get_record(s::PcapOffline)
     end
 
     nothing
-end # function pcap_fopen_offline
+end # function pcap_get_record
+
+function pcap_seekstart(s::PcapOffline)
+    seekstart(s)
+end # function pcap_offline
