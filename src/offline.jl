@@ -9,7 +9,6 @@ type PcapFileHeader
     sigfigs::Uint32
     snaplen::Uint32
     network::Uint32
-
     PcapFileHeader() = new(0,0,0,0,0,0,0)
 end # type PcapFileHeader
 
@@ -19,7 +18,6 @@ type PcapRec
     incl_len::Uint32
     orig_len::Uint32
     payload::Array{Uint8}
-
     PcapRec() = new(0,0,0,0, Array(Uint8, 0))
 end # type PcapRec
 
