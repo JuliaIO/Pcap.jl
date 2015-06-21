@@ -38,6 +38,9 @@ type PcapOffline
     end # constructor
 end # type PcapOffline
 
+#----------
+# decode PCap file format header
+#----------
 function pcap_get_header(s::PcapOffline)
     filehdr = PcapFileHeader()
     filehdr.magic_number  = read(s.file, Uint32)
@@ -51,6 +54,9 @@ function pcap_get_header(s::PcapOffline)
     s.hdr_read = true
 end # function pcap_get_header
 
+#----------
+# decode next record in PCap file
+#----------
 function pcap_get_record(s::PcapOffline)
     if (s.hdr_read != true)
         pcap_get_header(s)

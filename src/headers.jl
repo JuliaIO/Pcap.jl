@@ -86,6 +86,9 @@ type DecPkt
     DecPkt() = new(EthHdr(), IpHdr(), nothing)
 end # type DecPkt
 
+#----------
+# decode ethernet header
+#----------
 function decode_eth_hdr(d::Array{Uint8})
     eh = EthHdr()
     eh.dest_mac = string(hex(d[1], 2), ":", hex(d[2], 2), ":", hex(d[3], 2), ":",
@@ -96,6 +99,9 @@ function decode_eth_hdr(d::Array{Uint8})
     eh
 end # function decode_eth_hdr
 
+#----------
+# decode IP header
+#----------
 function decode_ip_hdr(d::Array{Uint8})
     iph = IpHdr()
     iph.version     = (d[1] & 0xf0) >> 4
@@ -120,6 +126,9 @@ function decode_ip_hdr(d::Array{Uint8})
     iph
 end # function decode_ip_hdr
 
+#----------
+# decode TCP header
+#----------
 function decode_tcp_hdr(d::Array{Uint8})
     tcph = TcpHdr()
     tcph.src_port  = ntoh(reinterpret(Uint16, d[1:2])[1])
@@ -149,6 +158,9 @@ function decode_tcp_hdr(d::Array{Uint8})
     tcph
 end # function decode_tcp_hdr
 
+#----------
+# decode UDP header
+#----------
 function decode_udp_hdr(d::Array{Uint8})
     udph = UdpHdr()
     udph.src_port  = ntoh(reinterpret(Uint16, d[1:2])[1])
@@ -159,6 +171,9 @@ function decode_udp_hdr(d::Array{Uint8})
     udph
 end # function decode_udp_hdr
 
+#----------
+# decode ICMP header
+#----------
 function decode_icmp_hdr(d::Array{Uint8})
     icmph = IcmpHdr()
     icmph.ptype      = d[1]
@@ -169,6 +184,9 @@ function decode_icmp_hdr(d::Array{Uint8})
     icmph
 end # function decode_icmp_hdr
 
+#----------
+# decode ethernet packet
+#----------
 function decode_pkt(pkt::Array{Uint8})
     decoded           = DecPkt()
     decoded.datalink  = decode_eth_hdr(pkt)
