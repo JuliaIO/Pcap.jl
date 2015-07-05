@@ -1,4 +1,4 @@
-##Pcap [![Build Status](https://travis-ci.org/brandonkmiller/Pcap.jl.svg?branch=master)](https://travis-ci.org/brandonkmiller/Pcap.jl)
+##Pcap [![Build Status](https://travis-ci.org/cycloidgamma/Pcap.jl.svg?branch=master)](https://travis-ci.org/cycloidgamma/Pcap.jl)
 
 Pcap contains libpcap bindings for Julia as well as logic to parse and extract useful data from packet captures
 
