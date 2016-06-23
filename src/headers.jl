@@ -26,10 +26,10 @@ type IpHdr
     frag_offset::UInt16
     ttl::UInt8
     protocol::UInt8
-    checksum::UInt16
+    checksum::Bool
     src_ip::AbstractString
     dest_ip::AbstractString
-    IpHdr() = new(0,0,0,0,0,IpFlags(),0,0,0,0,"","")
+    IpHdr() = new(0,0,0,0,0,IpFlags(),0,0,0,false,"","")
 end # type IpHdr
 
 type TcpFlags
@@ -100,12 +100,33 @@ function decode_eth_hdr(d::Array{UInt8})
 end # function decode_eth_hdr
 
 #----------
+# calculate IP checksum
+#----------
+function ip_checksum(buf::Array{UInt8})
+    sum::UInt64 = 0
+    for pair in reinterpret(UInt16, buf)
+        sum += pair
+        if (sum & 0x80000000) != 0
+            sum = (sum & 0xFFFF) + (sum >> 16)
+        end
+    end
+
+    while ((sum >> 16) != 0)
+        sum = (sum & 0xFFFF) + (sum >> 16)
+    end
+    ~sum
+end # function ip_checksum
+
+#----------
 # decode IP header
 #----------
 function decode_ip_hdr(d::Array{UInt8})
     iph = IpHdr()
     iph.version     = (d[1] & 0xf0) >> 4
     iph.length      = (d[1] & 0x0f) * 4
+    if ip_checksum(d[1:iph.length]) == 0xFFFFFFFFFFFF0000
+        iph.checksum = true
+    end
     iph.services    = d[2]
     iph.totlen      = ntoh(reinterpret(UInt16, d[3:4])[1])
     iph.id          = ntoh(reinterpret(UInt16, d[5:6])[1])
@@ -116,11 +137,10 @@ function decode_ip_hdr(d::Array{UInt8})
     flags.dont_frag  = (d[7] & (1 << 6)) > 0
     flags.more_frags = (d[7] & (1 << 5)) > 0
     iph.flags        = flags
-    
+
     iph.frag_offset = ntoh(reinterpret(UInt16, d[7:8])[1] & 0x7ff)
     iph.ttl         = d[9]
     iph.protocol    = d[10]
-    iph.checksum    = ntoh(reinterpret(UInt16, d[11:12])[1])
     iph.src_ip      = string(Int(d[13]), ".", Int(d[14]), ".", Int(d[15]), ".", Int(d[16]))
     iph.dest_ip     = string(Int(d[17]), ".", Int(d[18]), ".", Int(d[19]), ".", Int(d[20]))
     iph
@@ -150,7 +170,7 @@ function decode_tcp_hdr(d::Array{UInt8})
     flags.syn      = (d[14] & (1 << 1)) > 0
     flags.fin      = (d[14] & 1) > 0
     tcph.flags     = flags
-    
+
     tcph.window    = ntoh(reinterpret(UInt16, d[15:16])[1])
     tcph.checksum  = ntoh(reinterpret(UInt16, d[17:18])[1])
     tcph.uptr      = ntoh(reinterpret(UInt16, d[19:20])[1])
@@ -205,3 +225,4 @@ function decode_pkt(pkt::Array{UInt8})
     decoded.protocol = proto
     decoded
 end # function decode_pkt
+
