@@ -23,7 +23,7 @@ function test_ip_hdr(iphdr::IpHdr)
     @test 17    == iphdr.protocol
     @test "192.168.0.51" == iphdr.src_ip
     @test "192.168.0.1"  == iphdr.dest_ip
-    @test 0x67ca         == iphdr.checksum
+    @test true           == iphdr.checksum
 end # function test_ip_hdr
 
 function test_udp_hdr(udphdr::UdpHdr)
