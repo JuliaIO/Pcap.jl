@@ -14,3 +14,16 @@
  */
 
 #include "live_cap.h"
+
+int capture_open_live(const char *device, int snaplen, int promisc,
+                      int to_ms)
+{   
+}
+
+void capture_close(void)
+{
+}
+
+void capture_loop(void)
+{
+}

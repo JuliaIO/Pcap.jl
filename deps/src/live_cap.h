@@ -18,5 +18,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <pcap.h>
 
 #endif
