@@ -20,4 +20,9 @@
 #include <stdio.h>
 #include <pcap/pcap.h>
 
+int capture_open_live (const char *device, int snaplen, int promisc, int ms);
+int capture_set_filter (const char *filter);
+void capture_close (void);
+void capture_loop (void);
+
 #endif

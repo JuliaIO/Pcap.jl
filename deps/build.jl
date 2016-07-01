@@ -2,7 +2,7 @@ using BinDeps
 
 @BinDeps.setup
 
-deps = [ pcap = library_dependency("Pcap", aliases = ["libjlpcap"]) ]
+deps = [ pcap = library_dependency("Pcap", aliases = ["libpcap"]) ]
 
 @linux_only begin
     prefix = joinpath(BinDeps.depsdir(pcap), "usr")
@@ -14,10 +14,10 @@ deps = [ pcap = library_dependency("Pcap", aliases = ["libjlpcap"]) ]
                 CreateDirectory("$prefix/lib")
                 @build_steps begin
                     ChangeDirectory(pcapbuilddir)
-                    FileRule(joinpath(prefix, "lib", "libjlpcap.so"), @build_steps begin
+                    FileRule(joinpath(prefix, "lib", "libpcap.so"), @build_steps begin
                         `gcc -c -O -W -Wall -fpic -std=gnu99 $pcapsrcdir/pcap-lib.c -lpcap`
-                        `gcc -shared -o libjlpcap.so pcap-lib.o`
-                        `cp libjlpcap.so $prefix/lib`
+                        `gcc -shared -o libpcap.so pcap-lib.o`
+                        `cp libpcap.so $prefix/lib`
                         `cp $pcapsrcdir/pcap-lib.h $prefix/include`
                     end)
                 end
