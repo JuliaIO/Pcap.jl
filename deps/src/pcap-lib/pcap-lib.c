@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  live_cap.c
+ *       Filename:  pcap-lib.c
  *
  *    Description:  wrappers for libpcap live capture functionality
  *
@@ -13,7 +13,7 @@
  * =====================================================================================
  */
 
-#include "live_cap.h"
+#include "pcap-lib.h"
 
 static pcap_t *_handle = NULL;
 static char *_errbuf = NULL;
@@ -25,13 +25,13 @@ static void capture_dispose(void)
 {
     _net = 0;
     _mask = 0;
-    free(_errbuff);
-    _errbuff = NULL;
+    free(_errbuf);
+    _errbuf = NULL;
     pcap_freecode(_fp);
 }
 
 int capture_open_live(const char *device, int snaplen, int promisc,
-                      int to_ms)
+                      int ms)
 {
     if (pcap_lookupnet(device, &_net, &_mask, _errbuf) == -1)
         return -1;
@@ -40,7 +40,7 @@ int capture_open_live(const char *device, int snaplen, int promisc,
         return -1;
 
     _errbuf = (char *)malloc(PCAP_ERRBUF_SIZE);
-    _handle = pcap_open_live(device, snaplen, promisc, ms);
+    _handle = pcap_open_live(device, snaplen, promisc, ms, _errbuf);
     if (_handle == NULL)
         return -1;
 
