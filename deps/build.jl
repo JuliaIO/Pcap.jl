@@ -2,26 +2,26 @@ using BinDeps
 
 @BinDeps.setup
 
-jlpcap = library_dependency("libjlpcap")
+jlcap = library_dependency("libjlcap")
 
 @linux_only begin
-    prefix = joinpath(BinDeps.depsdir(jlpcap), "usr")
-    pcapsrcdir = joinpath(BinDeps.depsdir(jlpcap), "src", "pcap-lib")
-    pcapbuilddir = joinpath(BinDeps.depsdir(jlpcap), "builds", "pcap-lib")
+    prefix = joinpath(BinDeps.depsdir(jlcap), "usr")
+    pcapsrcdir = joinpath(BinDeps.depsdir(jlcap), "src", "jl-cap-lib")
+    pcapbuilddir = joinpath(BinDeps.depsdir(jlcap), "builds", "jl-cap-lib")
     provides(BuildProcess,
             (@build_steps begin
                 CreateDirectory(pcapbuilddir)
                 CreateDirectory("$prefix/lib")
                 @build_steps begin
                     ChangeDirectory(pcapbuilddir)
-                    FileRule(joinpath(prefix, "lib", "libjlpcap.so"), @build_steps begin
-                        `gcc -c -O -W -Wall -fpic -std=gnu99 $pcapsrcdir/pcap-lib.c -lpcap`
-                        `gcc -shared -o libjlpcap.so pcap-lib.o`
-                        `cp libjlpcap.so $prefix/lib`
-                        `cp $pcapsrcdir/pcap-lib.h $prefix/include`
+                    FileRule(joinpath(prefix, "lib", "libjlcap.so"), @build_steps begin
+                        `gcc -c -O -W -Wall -fpic -std=gnu99 $pcapsrcdir/jl-cap-lib.c -lpcap`
+                        `gcc -shared -o libjlcap.so jl-cap-lib.o -lpcap`
+                        `cp libjlcap.so $prefix/lib`
+                        `cp $pcapsrcdir/jl-cap-lib.h $prefix/include`
                     end)
                 end
-            end), jlpcap, os = :Linux)
+            end), jlcap, os = :Linux)
 end
 
-@BinDeps.install Dict(:libjlpcap => :libjlpcap)
+@BinDeps.install Dict(:libjlcap => :libjlcap)

@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename:  pcap-lib.c
+ *       Filename:  jl-cap-lib.c
  *
- *    Description:  wrappers for libpcap live capture functionality
+ *    Description:  wrappers for libpcap live _cap functionality
  *
  *        Created:  06/26/2016 05:06:29 PM
  *       Compiler:  gcc
@@ -13,7 +13,7 @@
  * =====================================================================================
  */
 
-#include "pcap-lib.h"
+#include "jl-cap-lib.h"
 
 static pcap_t *_handle = NULL;
 static char *_errbuf = NULL;
@@ -21,7 +21,7 @@ static struct bpf_program *_fp = NULL;
 static bpf_u_int32 _mask;
 static bpf_u_int32 _net;
 
-static void capture_dispose(void)
+static void cap_dispose(void)
 {
     _net = 0;
     _mask = 0;
@@ -30,7 +30,7 @@ static void capture_dispose(void)
     pcap_freecode(_fp);
 }
 
-int capture_open_live(const char *device, int snaplen, int promisc,
+int _cap_open_live(const char *device, int snaplen, int promisc,
                       int ms)
 {
     if (pcap_lookupnet(device, &_net, &_mask, _errbuf) == -1)
@@ -47,7 +47,7 @@ int capture_open_live(const char *device, int snaplen, int promisc,
     return (pcap_datalink(_handle));
 }
 
-int capture_set_filter(const char *filter)
+int _cap_set_filter(const char *filter)
 {
     _fp = (struct bpf_program *)malloc(sizeof(struct bpf_program));
 
@@ -60,12 +60,12 @@ int capture_set_filter(const char *filter)
     return 0;
 }
 
-void capture_close(void)
+void _cap_close(void)
 {
     pcap_close(_handle);
-    capture_dispose();
+    cap_dispose();
 }
 
-void capture_loop(void)
+void _cap_loop(void)
 {
 }

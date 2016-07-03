@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename:  pcap-lib.h
+ *       Filename:  jl-cap-lib.h
  *
- *    Description:  includes for pcap-lib.c
+ *    Description:  includes for jl-cap-lib.c
  *
  *        Created:  06/26/2016 05:09:30 PM
  *       Compiler:  gcc
@@ -18,11 +18,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <pcap/pcap.h>
+#include <pcap.h>
 
-int capture_open_live (const char *device, int snaplen, int promisc, int ms);
-int capture_set_filter (const char *filter);
-void capture_close (void);
-void capture_loop (void);
+int _cap_open_live (const char *device, int snaplen, int promisc, int ms);
+int _cap_set_filter (const char *filter);
+void _cap_close (void);
+void _cap_loop (void);
 
 #endif

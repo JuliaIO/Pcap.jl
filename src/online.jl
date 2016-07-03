@@ -1,4 +1,5 @@
-import GetC.@getCFun
+export cap_open_live, cap_set_filter, cap_close,
+    cap_loop
 
 if isfile(joinpath(dirname(@__FILE__),"..","deps","deps.jl"))
     include("../deps/deps.jl")
@@ -6,21 +7,18 @@ else
     error("Pcap not properly installed. Please run Pkg.build(\"Pcap\")")
 end
 
-const pcaplib = "libjlpcap"
+function cap_open_live(device::Ptr{UInt8}, snaplen::Int32, promisc::Int32, ms::Int32)
+    ccall((:_cap_open_live, Pcap.libjlcap), Int32, (Ptr{UInt8}, Int32, Int32, Int32), device, snaplen, promisc, ms)
+end
 
-@getCFun pcaplib pcap_open_live capture_open_live(
-    device::Ptr{UInt8}, snaplen::Int32, promisc::Int32, ms::Int32
-)::Int32
-export pcap_open_live
+function cap_set_filter(filter::Ptr{UInt8})
+    ccall((:_cap_set_filter, Pcap.libjlcap), Int32, (Ptr{UInt8},), filter)
+end
 
-@getCFun pcaplib pcap_set_filter capture_set_filter(filter::Ptr{UInt8})::Int32
-export pcap_set_filter
+function cap_close()
+    ccall((:_cap_close, Pcap.libjlcap), Void, ())
+end
 
-@getCFun pcaplib pcap_close capture_close()::Void
-export pcap_close
-
-@getCFun pcaplib pcap_loop capture_loop()::Int32
-export pcap_loop
-
-
-
+function cap_loop()
+    ccall((:_cap_loop, Pcap.libjlcap), Int32, ())
+end
