@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include <pcap.h>
 
+#define DEBUG 1
+
 int _cap_open_live (const char *device, int snaplen, int promisc, int ms);
 int _cap_set_filter (const char *filter);
 void _cap_close (void);

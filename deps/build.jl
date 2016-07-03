@@ -12,6 +12,7 @@ jlcap = library_dependency("libjlcap")
             (@build_steps begin
                 CreateDirectory(pcapbuilddir)
                 CreateDirectory("$prefix/lib")
+                CreateDirectory("$prefix/include")
                 @build_steps begin
                     ChangeDirectory(pcapbuilddir)
                     FileRule(joinpath(prefix, "lib", "libjlcap.so"), @build_steps begin

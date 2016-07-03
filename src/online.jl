@@ -7,7 +7,7 @@ else
     error("Pcap not properly installed. Please run Pkg.build(\"Pcap\")")
 end
 
-function cap_open_live(device::Ptr{UInt8}, snaplen::Int32, promisc::Int32, ms::Int32)
+function cap_open_live(device::AbstractString, snaplen::Int, promisc::Int, ms::Int)
     ccall((:_cap_open_live, Pcap.libjlcap), Int32, (Ptr{UInt8}, Int32, Int32, Int32), device, snaplen, promisc, ms)
 end
 

@@ -62,7 +62,8 @@ int _cap_set_filter(const char *filter)
 
 void _cap_close(void)
 {
-    pcap_close(_handle);
+    if (_handle)
+        pcap_close(_handle);
     cap_dispose();
 }
 
