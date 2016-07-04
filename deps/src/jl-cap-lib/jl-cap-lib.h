@@ -25,6 +25,6 @@
 int _cap_open_live (const char *device, int snaplen, int promisc, int ms);
 int _cap_set_filter (const char *filter);
 void _cap_close (void);
-void _cap_loop (void);
+int _cap_loop (int count);
 
 #endif

@@ -11,7 +11,7 @@ function cap_open_live(device::AbstractString, snaplen::Int, promisc::Int, ms::I
     ccall((:_cap_open_live, Pcap.libjlcap), Int32, (Ptr{UInt8}, Int32, Int32, Int32), device, snaplen, promisc, ms)
 end
 
-function cap_set_filter(filter::Ptr{UInt8})
+function cap_set_filter(filter::AbstractString)
     ccall((:_cap_set_filter, Pcap.libjlcap), Int32, (Ptr{UInt8},), filter)
 end
 
@@ -19,6 +19,6 @@ function cap_close()
     ccall((:_cap_close, Pcap.libjlcap), Void, ())
 end
 
-function cap_loop()
-    ccall((:_cap_loop, Pcap.libjlcap), Int32, ())
+function cap_loop(count::Int)
+    ccall((:_cap_loop, Pcap.libjlcap), Int32, (Int32,), count)
 end
