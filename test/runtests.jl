@@ -33,6 +33,7 @@ function test_udp_hdr(udphdr::UdpHdr)
     @test 0xa24a == udphdr.checksum
 end # function test_udp_hdr
 
+# test little endian captures and header dissectors
 cap     = PcapOffline("data/dns-query-response.pcap")
 rec     = pcap_get_record(cap)
 layers  = decode_pkt(rec.payload)
@@ -40,3 +41,12 @@ layers  = decode_pkt(rec.payload)
 test_eth_hdr(layers.datalink)
 test_ip_hdr(layers.network)
 test_udp_hdr(layers.protocol)
+
+# test big endian capture
+cap = PcapOffline("data/big-endian-icmp-echo-request.pcap")
+rec = pcap_get_record(cap)
+@test rec.ts_sec == 0x569558b0
+@test rec.ts_usec == 0x000d4d10
+@test rec.incl_len == 0x00000062
+@test rec.orig_len == 0x00000062
+
