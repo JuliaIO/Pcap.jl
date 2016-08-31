@@ -26,52 +26,47 @@ type PcapOffline
     file::IO
     filehdr::PcapFileHeader
     record::PcapRec
-    hdr_read::Bool
-
+    is_big::Bool
     function PcapOffline(fn::AbstractString)
         filename = fn
-        file     = open(fn, "r+")
-        filehdr  = PcapFileHeader()
-        record   = PcapRec()
-        hdr_read = false
-        new(filename, file, filehdr, record, hdr_read)
+        file = open(fn, "r+")
+        filehdr, is_big = decode_hdr(file)
+        record = PcapRec()
+        new(filename, file, filehdr, record, is_big)
     end # constructor
 end # type PcapOffline
 
 #----------
 # decode PCap file format header
 #----------
-function pcap_get_header(s::PcapOffline)
+function decode_hdr(file::Any)
     filehdr = PcapFileHeader()
-    filehdr.magic_number  = read(s.file, UInt32)
-    filehdr.version_major = read(s.file, UInt16)
-    filehdr.version_minor = read(s.file, UInt16)
-    filehdr.thiszone      = read(s.file, Int32)
-    filehdr.sigfigs       = read(s.file, UInt32)
-    filehdr.snaplen       = read(s.file, UInt32)
-    filehdr.network       = read(s.file, UInt32)
-    s.filehdr  = filehdr
-    s.hdr_read = true
-end # function pcap_get_header
+    filehdr.magic_number  = read(file, UInt32)
+    big_endian = false
+    if filehdr.magic_number == 0xd4c3b2a1
+        big_endian = true
+    end
+    filehdr.version_major = big_endian ? ntoh(read(file, UInt16)) : read(file, UInt16)
+    filehdr.version_minor = big_endian ? ntoh(read(file, UInt16)) : read(file, UInt16)
+    filehdr.thiszone      = read(file, Int32)
+    filehdr.sigfigs       = big_endian ? ntoh(read(file, UInt32)) : read(file, UInt32)
+    filehdr.snaplen       = big_endian ? ntoh(read(file, UInt32)) : read(file, UInt32)
+    filehdr.network       = big_endian ? ntoh(read(file, UInt32)) : read(file, UInt32)
+    return [filehdr, big_endian]
+end # function decode_hdr
 
 #----------
 # decode next record in PCap file
 #----------
 function pcap_get_record(s::PcapOffline)
-    if (s.hdr_read != true)
-        pcap_get_header(s)
-    end
-
     rec = PcapRec()
-
     if (!eof(s.file))
-        rec.ts_sec   = read(s.file, UInt32)
-        rec.ts_usec  = read(s.file, UInt32)
-        rec.incl_len = read(s.file, UInt32)
-        rec.orig_len = read(s.file, UInt32)
+        rec.ts_sec   = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
+        rec.ts_usec  = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
+        rec.incl_len = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
+        rec.orig_len = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
         rec.payload  = readbytes(s.file, rec.incl_len)
         return rec
     end
-
     nothing
 end # function pcap_get_record
