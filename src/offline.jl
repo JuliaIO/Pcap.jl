@@ -65,7 +65,7 @@ function pcap_get_record(s::PcapOffline)
         rec.ts_usec  = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
         rec.incl_len = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
         rec.orig_len = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
-        rec.payload  = readbytes(s.file, rec.incl_len)
+        rec.payload  = read(s.file, rec.incl_len)
         return rec
     end
     nothing
