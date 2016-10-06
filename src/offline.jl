@@ -1,3 +1,6 @@
+using Compat
+import Compat.read
+
 export PcapFileHeader, PcapRec, PcapOffline,
        pcap_get_record
 
