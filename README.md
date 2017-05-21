@@ -1,8 +1,8 @@
-##Pcap [![Build Status](https://travis-ci.org/furface/Pcap.jl.svg?branch=master)](https://travis-ci.org/furface/Pcap.jl)
+## Pcap [![Build Status](https://travis-ci.org/furface/Pcap.jl.svg?branch=master)](https://travis-ci.org/furface/Pcap.jl)
 
 Pcap contains libpcap bindings for Julia as well as logic to parse and extract useful data from packet captures
 
-###Example
+### Example
 ```julia
 function display_eth_hdr(ethhdr::EthHdr)
     println("Ethernet Header")
@@ -56,7 +56,7 @@ end
 println("\n\n--------------------------------\n")
 ```
 
-###Output
+### Output
 ```
 ---------- UDP Packet ----------
 
