@@ -20,8 +20,8 @@ type PcapRec
     ts_usec::UInt32
     incl_len::UInt32
     orig_len::UInt32
-    payload::Array{UInt8}
-    PcapRec() = new(0,0,0,0, Array(UInt8, 0))
+    payload::Vector{UInt8}
+    PcapRec() = new(0,0,0,0, Vector{UInt8}(0))
 end # type PcapRec
 
 type PcapOffline

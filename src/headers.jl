@@ -57,8 +57,8 @@ type TcpHdr
     window::UInt16
     checksum::UInt16
     uptr::UInt16
-    data::Array{UInt8}
-    TcpHdr() = new(0,0,0,0,0,TcpFlags(),0,0,0, Array(UInt8))
+    data::Vector{UInt8}
+    TcpHdr() = new(0,0,0,0,0,TcpFlags(),0,0,0, Vector{UInt8}(0))
 end # type TcpHdr
 
 type UdpHdr
@@ -66,8 +66,8 @@ type UdpHdr
     dest_port::UInt16
     length::UInt16
     checksum::UInt16
-    data::Array{UInt8}
-    UdpHdr() = new(0,0,0,0,Array(UInt8))
+    data::Vector{UInt8}
+    UdpHdr() = new(0,0,0,0,Vector{UInt8}(0))
 end # type UdpHdr
 
 type IcmpHdr
@@ -86,6 +86,14 @@ type DecPkt
     DecPkt() = new(EthHdr(), IpHdr(), nothing)
 end # type DecPkt
 
+@inline function getindex_he{T}(::Type{T}, b::Vector{UInt8}, i)
+    # When 0.4 support is dropped, add @boundscheck
+    checkbounds(b, i + sizeof(T) - 1)
+    return unsafe_load(Ptr{T}(pointer(b, i)))
+end
+
+@inline getindex_be{T}(::Type{T}, b::Vector{UInt8}, i) = hton(getindex_he(T, b, i))
+
 #----------
 # decode ethernet header
 #----------
@@ -95,7 +103,7 @@ function decode_eth_hdr(d::Array{UInt8})
                          hex(d[4], 2), ":", hex(d[5], 2), ":", hex(d[6], 2))
     eh.src_mac  = string(hex(d[7], 2), ":", hex(d[8], 2), ":", hex(d[9], 2), ":",
                          hex(d[10], 2), ":", hex(d[11], 2), ":", hex(d[12], 2))
-    eh.ptype    = ntoh(reinterpret(UInt16, d[13:14])[1])
+    eh.ptype    = getindex_be(UInt16, d, 13)
     eh
 end # function decode_eth_hdr
 
@@ -104,7 +112,8 @@ end # function decode_eth_hdr
 #----------
 function ip_checksum(buf::Array{UInt8})
     sum::UInt64 = 0
-    for pair in reinterpret(UInt16, buf)
+    for i in 1:2:length(buf)
+        pair = getindex_he(UInt16, buf, i)
         sum += pair
         if (sum & 0x80000000) != 0
             sum = (sum & 0xFFFF) + (sum >> 16)
@@ -128,8 +137,8 @@ function decode_ip_hdr(d::Array{UInt8})
         iph.checksum = true
     end
     iph.services    = d[2]
-    iph.totlen      = ntoh(reinterpret(UInt16, d[3:4])[1])
-    iph.id          = ntoh(reinterpret(UInt16, d[5:6])[1])
+    iph.totlen      = getindex_be(UInt16, d, 3)
+    iph.id          = getindex_be(UInt16, d, 5)
 
     # set flags
     flags = IpFlags()
@@ -138,7 +147,7 @@ function decode_ip_hdr(d::Array{UInt8})
     flags.more_frags = (d[7] & (1 << 5)) > 0
     iph.flags        = flags
 
-    iph.frag_offset = ntoh(reinterpret(UInt16, d[7:8])[1] & 0x7ff)
+    iph.frag_offset = getindex_be(UInt16, d, 7) & 0x7ff
     iph.ttl         = d[9]
     iph.protocol    = d[10]
     iph.src_ip      = string(Int(d[13]), ".", Int(d[14]), ".", Int(d[15]), ".", Int(d[16]))
@@ -151,10 +160,10 @@ end # function decode_ip_hdr
 #----------
 function decode_tcp_hdr(d::Array{UInt8})
     tcph = TcpHdr()
-    tcph.src_port  = ntoh(reinterpret(UInt16, d[1:2])[1])
-    tcph.dest_port = ntoh(reinterpret(UInt16, d[3:4])[1])
-    tcph.seq       = ntoh(reinterpret(UInt32, d[5:8])[1])
-    tcph.ack       = ntoh(reinterpret(UInt32, d[9:12])[1])
+    tcph.src_port  = getindex_be(UInt16, d, 1)
+    tcph.dest_port = getindex_be(UInt16, d, 3)
+    tcph.seq       = getindex_be(UInt32, d, 5)
+    tcph.ack       = getindex_be(UInt32, d, 9)
     tcph.offset    = (d[13] & 0xf0) >> 4
 
     # set flags
@@ -171,9 +180,9 @@ function decode_tcp_hdr(d::Array{UInt8})
     flags.fin      = (d[14] & 1) > 0
     tcph.flags     = flags
 
-    tcph.window    = ntoh(reinterpret(UInt16, d[15:16])[1])
-    tcph.checksum  = ntoh(reinterpret(UInt16, d[17:18])[1])
-    tcph.uptr      = ntoh(reinterpret(UInt16, d[19:20])[1])
+    tcph.window    = getindex_be(UInt16, d, 15)
+    tcph.checksum  = getindex_be(UInt16, d, 17)
+    tcph.uptr      = getindex_be(UInt16, d, 19)
     tcph.data      = d[tcph.offset * 4 + 1:end]
     tcph
 end # function decode_tcp_hdr
@@ -183,10 +192,10 @@ end # function decode_tcp_hdr
 #----------
 function decode_udp_hdr(d::Array{UInt8})
     udph = UdpHdr()
-    udph.src_port  = ntoh(reinterpret(UInt16, d[1:2])[1])
-    udph.dest_port = ntoh(reinterpret(UInt16, d[3:4])[1])
-    udph.length    = ntoh(reinterpret(UInt16, d[5:6])[1])
-    udph.checksum  = ntoh(reinterpret(UInt16, d[7:8])[1])
+    udph.src_port  = getindex_be(UInt16, d, 1)
+    udph.dest_port = getindex_be(UInt16, d, 3)
+    udph.length    = getindex_be(UInt16, d, 5)
+    udph.checksum  = getindex_be(UInt16, d, 7)
     udph.data      = d[9:end]
     udph
 end # function decode_udp_hdr
@@ -198,9 +207,9 @@ function decode_icmp_hdr(d::Array{UInt8})
     icmph = IcmpHdr()
     icmph.ptype      = d[1]
     icmph.code       = d[2]
-    icmph.checksum   = ntoh(reinterpret(UInt16, d[3:4])[1])
-    icmph.identifier = ntoh(reinterpret(UInt16, d[5:6])[1])
-    icmph.seqno      = ntoh(reinterpret(UInt16, d[7:8])[1])
+    icmph.checksum   = getindex_be(UInt16, d, 3)
+    icmph.identifier = getindex_be(UInt16, d, 5)
+    icmph.seqno      = getindex_be(UInt16, d, 7)
     icmph
 end # function decode_icmp_hdr
 
