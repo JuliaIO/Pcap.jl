@@ -4,7 +4,7 @@ import Compat.read
 export PcapFileHeader, PcapRec, PcapOffline,
        pcap_get_record
 
-type PcapFileHeader
+mutable struct PcapFileHeader
     magic_number::UInt32
     version_major::UInt16
     version_minor::UInt16
@@ -13,18 +13,18 @@ type PcapFileHeader
     snaplen::UInt32
     network::UInt32
     PcapFileHeader() = new(0,0,0,0,0,0,0)
-end # type PcapFileHeader
+end # PcapFileHeader structure
 
-type PcapRec
+mutable struct PcapRec
     ts_sec::UInt32
     ts_usec::UInt32
     incl_len::UInt32
     orig_len::UInt32
     payload::Vector{UInt8}
-    PcapRec() = new(0,0,0,0, Vector{UInt8}(0))
-end # type PcapRec
+    PcapRec() = new(0,0,0,0, Vector{UInt8}(undef, 0))
+end # PcapRec structure
 
-type PcapOffline
+mutable struct PcapOffline
     filename::AbstractString
     file::IO
     filehdr::PcapFileHeader
@@ -37,7 +37,7 @@ type PcapOffline
         record = PcapRec()
         new(filename, file, filehdr, record, is_big)
     end # constructor
-end # type PcapOffline
+end # PcapOffline structure
 
 #----------
 # decode PCap file format header

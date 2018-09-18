@@ -2,21 +2,21 @@ export EthHdr, IpFlags, IpHdr,
        UdpHdr, TcpFlags, TcpHdr,
        IcmpHdr, DecPkt, decode_pkt
 
-type EthHdr
+mutable struct EthHdr
     dest_mac::AbstractString
     src_mac::AbstractString
     ptype::UInt16
     EthHdr() = new("","",0)
-end # type EthHdr
+end # struct EthHdr
 
-type IpFlags
+mutable struct IpFlags
     reserved::Bool
     dont_frag::Bool
     more_frags::Bool
     IpFlags() = new(false,false,false)
-end # type IpFlags
+end # struct IpFlags
 
-type IpHdr
+mutable struct IpHdr
     version::UInt8
     length::UInt8
     services::UInt8
@@ -30,9 +30,9 @@ type IpHdr
     src_ip::AbstractString
     dest_ip::AbstractString
     IpHdr() = new(0,0,0,0,0,IpFlags(),0,0,0,false,"","")
-end # type IpHdr
+end # struct IpHdr
 
-type TcpFlags
+mutable struct TcpFlags
     reserved::Bool
     nonce::Bool
     cwr::Bool
@@ -45,9 +45,9 @@ type TcpFlags
     fin::Bool
     TcpFlags() = new(false,false,false,false,false,
                      false,false,false,false,false)
-end # type TcpFlags
+end # struct TcpFlags
 
-type TcpHdr
+mutable struct TcpHdr
     src_port::UInt16
     dest_port::UInt16
     seq::UInt32
@@ -58,51 +58,50 @@ type TcpHdr
     checksum::UInt16
     uptr::UInt16
     data::Vector{UInt8}
-    TcpHdr() = new(0,0,0,0,0,TcpFlags(),0,0,0, Vector{UInt8}(0))
-end # type TcpHdr
+    TcpHdr() = new(0,0,0,0,0,TcpFlags(),0,0,0, Vector{UInt8}(undef, 0))
+end # struct TcpHdr
 
-type UdpHdr
+mutable struct UdpHdr
     src_port::UInt16
     dest_port::UInt16
     length::UInt16
     checksum::UInt16
     data::Vector{UInt8}
-    UdpHdr() = new(0,0,0,0,Vector{UInt8}(0))
-end # type UdpHdr
+    UdpHdr() = new(0,0,0,0,Vector{UInt8}(undef, 0))
+end # struct UdpHdr
 
-type IcmpHdr
+mutable struct IcmpHdr
     ptype::UInt8
     code::UInt8
     checksum::UInt16
     identifier::UInt16
     seqno::UInt16
     IcmpHdr() = new(0,0,0,0,0)
-end # type IcmpHdr
+end # struct IcmpHdr
 
-type DecPkt
+mutable struct DecPkt
     datalink::EthHdr
     network::IpHdr
     protocol::Any
     DecPkt() = new(EthHdr(), IpHdr(), nothing)
-end # type DecPkt
+end # struct DecPkt
 
-@inline function getindex_he{T}(::Type{T}, b::Vector{UInt8}, i)
+@inline function getindex_he(::Type{T}, b::Vector{UInt8}, i) where {T}
     # When 0.4 support is dropped, add @boundscheck
     checkbounds(b, i + sizeof(T) - 1)
     return unsafe_load(Ptr{T}(pointer(b, i)))
 end
 
-@inline getindex_be{T}(::Type{T}, b::Vector{UInt8}, i) = hton(getindex_he(T, b, i))
+@inline getindex_be(::Type{T}, b::Vector{UInt8}, i) where {T} = hton(getindex_he(T, b, i))
 
 #----------
 # decode ethernet header
 #----------
 function decode_eth_hdr(d::Array{UInt8})
+	hex(n) = string(n, base = 16, pad = 2) # Added due to hex being deprecated
     eh = EthHdr()
-    eh.dest_mac = string(hex(d[1], 2), ":", hex(d[2], 2), ":", hex(d[3], 2), ":",
-                         hex(d[4], 2), ":", hex(d[5], 2), ":", hex(d[6], 2))
-    eh.src_mac  = string(hex(d[7], 2), ":", hex(d[8], 2), ":", hex(d[9], 2), ":",
-                         hex(d[10], 2), ":", hex(d[11], 2), ":", hex(d[12], 2))
+    eh.dest_mac = join(hex.(d[1:6]), ":") # apply hex to first 6 elements and join result with ":"
+    eh.src_mac  = join(hex.(d[7:12]), ":") # do it for next 6 elements
     eh.ptype    = getindex_be(UInt16, d, 13)
     eh
 end # function decode_eth_hdr
@@ -150,8 +149,8 @@ function decode_ip_hdr(d::Array{UInt8})
     iph.frag_offset = getindex_be(UInt16, d, 7) & 0x7ff
     iph.ttl         = d[9]
     iph.protocol    = d[10]
-    iph.src_ip      = string(Int(d[13]), ".", Int(d[14]), ".", Int(d[15]), ".", Int(d[16]))
-    iph.dest_ip     = string(Int(d[17]), ".", Int(d[18]), ".", Int(d[19]), ".", Int(d[20]))
+    iph.src_ip      = join(Int.(d[13:16]), ".")
+    iph.dest_ip     = join(Int.(d[17:20]), ".")
     iph
 end # function decode_ip_hdr
 
