@@ -9,7 +9,6 @@ struct PcapFileHeader
     sigfigs::UInt32
     snaplen::UInt32
     network::UInt32
-    PcapFileHeader() = new(0,0,0,0,0,0,0)
 end # struct PcapFileHeader
 
 struct PcapRec
@@ -18,21 +17,18 @@ struct PcapRec
     incl_len::UInt32
     orig_len::UInt32
     payload::Vector{UInt8}
-    PcapRec() = new(0,0,0,0, Vector{UInt8}(0))
 end # struct PcapRec
 
 struct PcapOffline
     filename::AbstractString
     file::IO
     filehdr::PcapFileHeader
-    record::PcapRec
     is_big::Bool
     function PcapOffline(fn::AbstractString)
         filename = fn
         file = open(fn, "r+")
         filehdr, is_big = decode_hdr(file)
-        record = PcapRec()
-        new(filename, file, filehdr, record, is_big)
+        new(filename, file, filehdr, is_big)
     end # constructor
 end # struct PcapOffline
 
@@ -40,18 +36,20 @@ end # struct PcapOffline
 # decode PCap file format header
 #----------
 function decode_hdr(file::Any)
-    filehdr = PcapFileHeader()
-    filehdr.magic_number  = read(file, UInt32)
+    magic_number = read(file, UInt32)
     big_endian = false
-    if filehdr.magic_number == 0xd4c3b2a1
+    if magic_number == 0xd4c3b2a1
         big_endian = true
     end
-    filehdr.version_major = big_endian ? ntoh(read(file, UInt16)) : read(file, UInt16)
-    filehdr.version_minor = big_endian ? ntoh(read(file, UInt16)) : read(file, UInt16)
-    filehdr.thiszone      = read(file, Int32)
-    filehdr.sigfigs       = big_endian ? ntoh(read(file, UInt32)) : read(file, UInt32)
-    filehdr.snaplen       = big_endian ? ntoh(read(file, UInt32)) : read(file, UInt32)
-    filehdr.network       = big_endian ? ntoh(read(file, UInt32)) : read(file, UInt32)
+    version_major = big_endian ? ntoh(read(file, UInt16)) : read(file, UInt16)
+    version_minor = big_endian ? ntoh(read(file, UInt16)) : read(file, UInt16)
+    thiszone      = read(file, Int32)
+    sigfigs       = big_endian ? ntoh(read(file, UInt32)) : read(file, UInt32)
+    snaplen       = big_endian ? ntoh(read(file, UInt32)) : read(file, UInt32)
+    network       = big_endian ? ntoh(read(file, UInt32)) : read(file, UInt32)
+
+    filehdr = PcapFileHeader(magic_number, version_major, version_minor,
+                             thiszone, sigfigs, snaplen, network)
     return [filehdr, big_endian]
 end # function decode_hdr
 
@@ -59,14 +57,14 @@ end # function decode_hdr
 # decode next record in PCap file
 #----------
 function pcap_get_record(s::PcapOffline)
-    rec = PcapRec()
     if (!eof(s.file))
-        rec.ts_sec   = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
-        rec.ts_usec  = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
-        rec.incl_len = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
-        rec.orig_len = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
-        rec.payload  = read(s.file, rec.incl_len)
-        return rec
+        ts_sec   = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
+        ts_usec  = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
+        incl_len = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
+        orig_len = s.is_big ? ntoh(read(s.file, UInt32)) : read(s.file, UInt32)
+        payload  = read(s.file, incl_len)
+
+        return PcapRec(ts_sec, ts_usec, incl_len, orig_len, payload)
     end
     nothing
 end # function pcap_get_record
