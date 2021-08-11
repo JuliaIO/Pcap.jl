@@ -87,8 +87,7 @@ struct DecPkt
 end # struct DecPkt
 
 @inline function getindex_he{T}(::Type{T}, b::Vector{UInt8}, i)
-    # When 0.4 support is dropped, add @boundscheck
-    checkbounds(b, i + sizeof(T) - 1)
+    @boundscheck checkbounds(b, i + sizeof(T) - 1)
     return unsafe_load(Ptr{T}(pointer(b, i)))
 end
 
