@@ -86,12 +86,12 @@ struct DecPkt
     DecPkt() = new(EthHdr(), IpHdr(), nothing)
 end # struct DecPkt
 
-@inline function getindex_he{T}(::Type{T}, b::Vector{UInt8}, i)
+@inline function getindex_he(::Type{T}, b::Vector{UInt8}, i) where T
     @boundscheck checkbounds(b, i + sizeof(T) - 1)
     return unsafe_load(Ptr{T}(pointer(b, i)))
 end
 
-@inline getindex_be{T}(::Type{T}, b::Vector{UInt8}, i) = hton(getindex_he(T, b, i))
+@inline getindex_be(::Type{T}, b::Vector{UInt8}, i) where T = hton(getindex_he(T, b, i))
 
 #----------
 # decode ethernet header
