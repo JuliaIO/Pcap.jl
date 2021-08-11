@@ -211,18 +211,16 @@ end # function decode_icmp_hdr
 function decode_pkt(pkt::Array{UInt8})
     datalink  = decode_eth_hdr(pkt)
     iphdr     = decode_ip_hdr(pkt[15:end])
-    network   = iphdr
 
-    proto = nothing
+    protocol = nothing
     if (iphdr.protocol == 1)
-        proto = decode_icmp_hdr(pkt[15 + iphdr.length:end])
+        protocol = decode_icmp_hdr(pkt[15 + iphdr.length:end])
     elseif (iphdr.protocol == 6)
-        proto = decode_tcp_hdr(pkt[15 + iphdr.length:end])
+        protocol = decode_tcp_hdr(pkt[15 + iphdr.length:end])
     elseif (iphdr.protocol == 17)
-        proto = decode_udp_hdr(pkt[15 + iphdr.length:end])
+        protocol = decode_udp_hdr(pkt[15 + iphdr.length:end])
     end
 
-    protocol = proto
-    DecPkt(datalink, network, protocol)
+    DecPkt(datalink, iphdr, protocol)
 end # function decode_pkt
 
