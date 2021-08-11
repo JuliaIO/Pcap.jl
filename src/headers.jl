@@ -2,21 +2,21 @@ export EthHdr, IpFlags, IpHdr,
        UdpHdr, TcpFlags, TcpHdr,
        IcmpHdr, DecPkt, decode_pkt
 
-type EthHdr
+struct EthHdr
     dest_mac::AbstractString
     src_mac::AbstractString
     ptype::UInt16
     EthHdr() = new("","",0)
-end # type EthHdr
+end # struct EthHdr
 
-type IpFlags
+struct IpFlags
     reserved::Bool
     dont_frag::Bool
     more_frags::Bool
     IpFlags() = new(false,false,false)
-end # type IpFlags
+end # struct IpFlags
 
-type IpHdr
+struct IpHdr
     version::UInt8
     length::UInt8
     services::UInt8
@@ -30,9 +30,9 @@ type IpHdr
     src_ip::AbstractString
     dest_ip::AbstractString
     IpHdr() = new(0,0,0,0,0,IpFlags(),0,0,0,false,"","")
-end # type IpHdr
+end # struct IpHdr
 
-type TcpFlags
+struct TcpFlags
     reserved::Bool
     nonce::Bool
     cwr::Bool
@@ -45,9 +45,9 @@ type TcpFlags
     fin::Bool
     TcpFlags() = new(false,false,false,false,false,
                      false,false,false,false,false)
-end # type TcpFlags
+end # struct TcpFlags
 
-type TcpHdr
+struct TcpHdr
     src_port::UInt16
     dest_port::UInt16
     seq::UInt32
@@ -59,32 +59,32 @@ type TcpHdr
     uptr::UInt16
     data::Vector{UInt8}
     TcpHdr() = new(0,0,0,0,0,TcpFlags(),0,0,0, Vector{UInt8}(0))
-end # type TcpHdr
+end # struct TcpHdr
 
-type UdpHdr
+struct UdpHdr
     src_port::UInt16
     dest_port::UInt16
     length::UInt16
     checksum::UInt16
     data::Vector{UInt8}
     UdpHdr() = new(0,0,0,0,Vector{UInt8}(0))
-end # type UdpHdr
+end # struct UdpHdr
 
-type IcmpHdr
+struct IcmpHdr
     ptype::UInt8
     code::UInt8
     checksum::UInt16
     identifier::UInt16
     seqno::UInt16
     IcmpHdr() = new(0,0,0,0,0)
-end # type IcmpHdr
+end # struct IcmpHdr
 
-type DecPkt
+struct DecPkt
     datalink::EthHdr
     network::IpHdr
     protocol::Any
     DecPkt() = new(EthHdr(), IpHdr(), nothing)
-end # type DecPkt
+end # struct DecPkt
 
 @inline function getindex_he{T}(::Type{T}, b::Vector{UInt8}, i)
     # When 0.4 support is dropped, add @boundscheck
