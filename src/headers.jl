@@ -93,6 +93,8 @@ end
 
 @inline getindex_be(::Type{T}, b::Vector{UInt8}, i) where T = hton(getindex_he(T, b, i))
 
+@inline hex(n, pad) = string(n, base=16, pad=pad)
+
 #----------
 # decode ethernet header
 #----------
