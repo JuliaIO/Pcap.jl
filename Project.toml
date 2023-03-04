@@ -1,0 +1,9 @@
+name = "Pcap"
+uuid = "25147f4a-163d-46f2-b0d5-7291076f4cc2"
+version = "0.0.5"
+
+[deps]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+julia = "1"
