@@ -50,3 +50,11 @@ rec = pcap_get_record(cap)
 @test rec.incl_len == 0x00000062
 @test rec.orig_len == 0x00000062
 
+# test checksum
+cap = PcapOffline("data/dns-query-response.pcap")
+rec = pcap_get_record(cap)
+layers1 = decode_pkt(rec.payload)
+@test layers1.network.checksum == true
+rec.payload[16] = 0xff - rec.payload[16]
+layers2 = decode_pkt(rec.payload)
+@test layers2.network.checksum == false
